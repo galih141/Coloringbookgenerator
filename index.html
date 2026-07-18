@@ -1,485 +1,738 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coloring Book Prompt Generator</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:13px}
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #111110;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      padding: 2rem 1rem;
-    }
+.page{
+  --ink:#15130f;
+  --paper:#ffffff;
+  --cream:#f6efdc;
+  --amber:#f4bb4c;
+  --mint:#8fd0c4;
+  --coral:#f2764a;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  background:var(--paper);
+  padding:14px;
+  border-radius:4px;
+}
 
-    .app {
-      width: 100%;
-      max-width: 640px;
-      color: #E8E6E1;
-    }
+.app{
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+}
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      padding: 5px 14px;
-      border-radius: 20px;
-      background: #2A2A28;
-      color: #B8B5AE;
-      border: 0.5px solid #3D3C39;
-      margin-bottom: 14px;
-    }
+/* ---------- Side panel ---------- */
+.panel{
+  width:266px;
+  flex:0 0 266px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.panel-title{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  padding:0 2px 2px;
+}
+.panel-title h1{
+  font-size:16px;
+  font-weight:800;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  color:var(--ink);
+}
+.panel-title span{
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--ink);
+  opacity:.55;
+}
 
-    h1.title { font-size: 22px; font-weight: 500; margin-bottom: 6px; color: #ECE9E3; }
-    p.subtitle { font-size: 14px; color: #8E8B85; margin-bottom: 1.5rem; }
+.card{
+  position:relative;
+  background:var(--paper);
+  border:2.5px solid var(--ink);
+  border-radius:14px;
+  box-shadow:4px 4px 0 var(--ink);
+  padding:11px 12px;
+}
 
-    .panel {
-      background: #1C1C1A;
-      border: 0.5px solid #34332F;
-      border-radius: 12px;
-      margin-bottom: 1rem;
-      overflow: hidden;
-    }
+.swatch-card{
+  background:var(--cream);
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.badge-live{
+  position:absolute;
+  top:-11px;right:10px;
+  background:var(--amber);
+  border:2px solid var(--ink);
+  border-radius:20px;
+  padding:2px 8px;
+  font-size:9px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  transform:rotate(-3deg);
+}
+.swatch-big-wrap{position:relative;flex-shrink:0}
+.swatch-big{
+  width:52px;height:52px;
+  border-radius:12px;
+  border:2.5px solid var(--ink);
+  background:#332453;
+}
+.swatch-big-wrap input[type=color]{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  opacity:0;
+  cursor:pointer;
+}
+.swatch-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.swatch-meta .eyebrow{
+  font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--ink);opacity:.6;
+}
+.hexval{
+  font-family:var(--font-mono);
+  font-size:15px;
+  font-weight:700;
+  color:var(--ink);
+}
 
-    .panel-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 1.25rem;
-      cursor: pointer;
-      user-select: none;
-    }
-    .panel-header:hover { background: #222220; }
+.field{display:flex;flex-direction:column;gap:6px}
+.field + .field{margin-top:10px}
+.field-label{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);
+}
+.field-label b{font-family:var(--font-mono);font-weight:700;opacity:.65}
 
-    .panel-label {
-      font-size: 12px;
-      font-weight: 500;
-      color: #8E8B85;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:10px;border:2px solid var(--ink);border-radius:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;background:var(--paper);border:2.5px solid var(--ink);border-radius:5px;margin-top:-5px;box-shadow:2px 2px 0 var(--ink)}
+input[type=range]::-moz-range-track{height:10px;border:2px solid var(--ink);border-radius:6px;background:#fff}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;background:var(--paper);border:2.5px solid var(--ink);border-radius:5px;box-shadow:2px 2px 0 var(--ink)}
+#hueSlider::-webkit-slider-runnable-track{background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+#hueSlider::-moz-range-track{background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
 
-    .panel-chevron {
-      font-size: 16px;
-      color: #6B685F;
-      transition: transform 0.2s;
-      line-height: 1;
-    }
-    .panel-chevron.open { transform: rotate(180deg); }
+select{
+  width:100%;
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+  padding:8px 26px 8px 9px;
+  border-radius:9px;
+  border:2.5px solid var(--ink);
+  background:var(--paper);
+  color:var(--ink);
+  cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);
+  background-position:calc(100% - 15px) center,calc(100% - 10px) center;
+  background-size:5px 5px,5px 5px;
+  background-repeat:no-repeat;
+}
+select:focus,input:focus{outline:2px solid var(--ink);outline-offset:2px}
 
-    .panel-body {
-      padding: 0 1.25rem 1.25rem;
-      border-top: 0.5px solid #34332F;
-    }
-    .panel-body.collapsed { display: none; }
+.split-row{display:flex;gap:8px}
+.split-row .field{flex:1;min-width:0}
 
-    .panel-static .panel-body {
-      padding: 1.25rem;
-      border-top: none;
-    }
+.toggle-card{background:var(--cream);display:flex;align-items:center;justify-content:space-between}
+.toggle-card span{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.switch-label{position:relative;display:inline-flex;cursor:pointer}
+.switch-label input{position:absolute;opacity:0;width:0;height:0}
+.switch{
+  width:38px;height:22px;border-radius:20px;
+  background:var(--paper);
+  border:2.5px solid var(--ink);
+  position:relative;
+}
+.switch::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:4px;
+  background:var(--ink);
+  transition:transform .12s ease;
+}
+.switch-label input:checked + .switch{background:var(--mint)}
+.switch-label input:checked + .switch::after{transform:translateX(15px)}
 
-    .field { margin-bottom: 14px; }
-    .field:last-child { margin-bottom: 0; }
-    .field-first { margin-top: 14px; }
-    .field-label { font-size: 13px; color: #B8B5AE; margin-bottom: 6px; }
+.brut-btn{
+  width:100%;
+  font-size:12.5px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  padding:12px 10px;
+  border-radius:12px;
+  border:2.5px solid var(--ink);
+  box-shadow:4px 4px 0 var(--ink);
+  color:var(--ink);
+  cursor:pointer;
+  transition:transform .08s ease,box-shadow .08s ease;
+}
+.brut-btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.brut-btn.amber{background:var(--amber)}
+.brut-btn.coral{background:var(--coral)}
 
-    input[type="text"] {
-      width: 100%;
-      background: #282724;
-      border: 0.5px solid #3D3C39;
-      border-radius: 8px;
-      padding: 9px 12px;
-      font-size: 14px;
-      color: #ECE9E3;
-      outline: none;
-      transition: border-color 0.12s;
-    }
-    input[type="text"]::placeholder { color: #6B685F; }
-    input[type="text"]:focus { border-color: #5C5B57; }
+.panel-footer{
+  text-align:center;
+  font-size:10.5px;
+  font-style:italic;
+  color:var(--ink);
+  opacity:.5;
+  padding-top:2px;
+}
 
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip {
-      font-size: 13px;
-      padding: 6px 14px;
-      border-radius: 20px;
-      cursor: pointer;
-      background: #282724;
-      color: #ECE9E3;
-      border: 0.5px solid #3D3C39;
-      transition: all 0.12s;
-      user-select: none;
-    }
-    .chip:hover { border-color: #5C5B57; }
-    .chip.on { background: #4A4946; color: #FFFFFF; border-color: #6B6963; font-weight: 500; }
+/* ---------- Stage ---------- */
+.stage{flex:1;min-width:0}
+.grid{display:grid;gap:8px}
 
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.cell{
+  border-radius:11px;
+  border:2.5px solid var(--ink);
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+  padding:5px 7px;
+  min-height:70px;
+}
+.cell-controls{
+  display:none;position:absolute;inset:0;
+  background:rgba(0,0,0,0.4);
+  align-items:center;justify-content:space-between;
+  padding:6px;gap:4px;
+}
+.cell:hover .cell-controls{display:flex}
+.cell-controls input[type=color]{
+  width:28px;height:28px;padding:1px;
+  border:2px solid #fff;border-radius:6px;cursor:pointer;flex-shrink:0;
+}
+.cell-controls .swap-btn{
+  font-size:10px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;
+  padding:4px 7px;border-radius:6px;
+  background:rgba(255,255,255,0.25);
+  border:1.5px solid #fff;
+  color:#fff;cursor:pointer;white-space:nowrap;
+}
+.hex-label{
+  font-size:9px;font-weight:700;
+  font-family:var(--font-mono);
+  color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,0.5);
+  pointer-events:none;
+}
+.mode-badge{
+  position:absolute;top:5px;right:5px;
+  width:21px;height:21px;
+  border-radius:6px;
+  border:2px solid var(--ink);
+  background:rgba(255,255,255,0.88);
+  font-size:10px;
+  font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  z-index:2;
+  color:var(--ink);
+  line-height:1;
+}
+.mode-badge:hover{background:#fff}
 
-    .ratio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .ratio-card {
-      border: 0.5px solid #3D3C39;
-      border-radius: 8px;
-      padding: 10px 8px;
-      cursor: pointer;
-      text-align: center;
-      background: #282724;
-      transition: all 0.12s;
-    }
-    .ratio-card:hover { border-color: #5C5B57; }
-    .ratio-card.on { border: 1.5px solid #8E8B85; background: #34332F; }
-    .ratio-shape { margin: 0 auto 6px; border: 1.5px solid #8E8B85; border-radius: 3px; }
-    .ratio-card.on .ratio-shape { border-color: #ECE9E3; }
-    .ratio-name { font-size: 12px; font-weight: 500; color: #ECE9E3; }
-    .ratio-dims { font-size: 11px; color: #6B685F; margin-top: 1px; }
+/* ---------- Reference section ---------- */
+.reference-section{display:flex;flex-direction:column;gap:10px}
+.ref-head{display:flex;align-items:baseline;justify-content:space-between;padding:0 2px}
+.ref-head h2{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--ink)}
+.ref-head span{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);opacity:.55}
+.ref-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(88px,1fr));
+  gap:12px;
+}
+.ref-chip-wrap{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.ref-chip{
+  border:2.5px solid var(--ink);
+  border-radius:13px;
+  box-shadow:3px 3px 0 var(--ink);
+  overflow:hidden;
+  cursor:pointer;
+  background:none;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  height:96px;
+  width:100%;
+  transition:transform .08s ease,box-shadow .08s ease;
+}
+.ref-chip:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+.ref-chip:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.ref-bar{flex:1}
+.ref-name{
+  font-size:9.5px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+  text-align:center;
+  color:var(--ink);
+  opacity:.7;
+}
+.ref-more-btn{
+  align-self:center;
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  padding:8px 18px;
+  border-radius:10px;
+  border:2.5px solid var(--ink);
+  background:var(--paper);
+  color:var(--ink);
+  cursor:pointer;
+  box-shadow:3px 3px 0 var(--ink);
+  transition:transform .08s ease,box-shadow .08s ease;
+}
+.ref-more-btn:hover{background:var(--cream)}
+.ref-more-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 
-    .slider-row { display: flex; align-items: center; gap: 12px; }
-    .slider-row input[type=range] {
-      flex: 1;
-      -webkit-appearance: none;
-      height: 4px;
-      border-radius: 2px;
-      background: #3D3C39;
-      outline: none;
-    }
-    .slider-row input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      background: #ECE9E3;
-      cursor: pointer;
-    }
-    .slider-num { font-size: 13px; font-weight: 500; min-width: 36px; color: #ECE9E3; }
-    .slider-ends { display: flex; justify-content: space-between; font-size: 12px; color: #6B685F; margin-top: 4px; }
+/* ---------- Responsive ---------- */
+@media (max-width:680px){
+  .app{flex-direction:column;gap:12px}
+  .panel{width:100%;flex:0 0 auto}
+  .cell{min-height:58px}
+  .page{padding:10px;gap:16px}
+}
+</style>
 
-    .toggle-row { display: flex; align-items: center; gap: 10px; }
-    .tog-btn {
-      width: 36px; height: 20px;
-      border-radius: 10px;
-      background: #3D3C39;
-      cursor: pointer;
-      position: relative;
-      border: none;
-      padding: 0;
-      transition: background 0.15s;
-      flex-shrink: 0;
-    }
-    .tog-btn.on { background: #6B6963; }
-    .tog-btn::after {
-      content: '';
-      position: absolute;
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      background: #ECE9E3;
-      top: 3px; left: 3px;
-      transition: left 0.15s;
-    }
-    .tog-btn.on::after { left: 19px; }
-    .tog-text { font-size: 13px; color: #ECE9E3; }
-    .name-field { margin-top: 10px; }
-
-    .output-panel {
-      background: #1C1C1A;
-      border: 0.5px solid #34332F;
-      border-radius: 12px;
-      padding: 1.25rem;
-      margin-top: 0.25rem;
-    }
-    .output-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-    .output-label {
-      font-size: 12px;
-      font-weight: 500;
-      color: #8E8B85;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .copy-btn {
-      font-size: 13px;
-      border-radius: 8px;
-      padding: 6px 14px;
-      cursor: pointer;
-      background: #282724;
-      color: #ECE9E3;
-      border: 0.5px solid #3D3C39;
-      display: inline-flex; align-items: center; gap: 6px;
-      transition: all 0.12s;
-    }
-    .copy-btn:hover { border-color: #5C5B57; }
-    .copy-btn.copied { background: #34332F; border-color: #6B6963; color: #B8B5AE; }
-
-    .output-box {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      color: #C8C5BE;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    @media (max-width: 480px) {
-      .two-col { grid-template-columns: 1fr; }
-      body { padding: 1rem 0.75rem; }
-    }
-  </style>
-</head>
-<body>
+<div class="page">
   <div class="app">
-    <div class="badge"><i class="ti ti-sparkles"></i> Prompt generator</div>
-    <h1 class="title">Coloring book illustration prompt</h1>
-    <p class="subtitle">Adjust any parameter and your prompt updates instantly.</p>
+    <aside class="panel">
+      <div class="panel-title">
+        <h1>Color Lab</h1>
+        <span>tools ✦</span>
+      </div>
 
-    <!-- Subject & Scene -->
-    <div class="panel panel-static">
-      <div class="panel-body">
-        <div class="field">
-          <div class="field-label">Subject</div>
-          <input type="text" id="subject" placeholder="a friendly dragon, a unicorn, a cat..." />
+      <div class="card swatch-card">
+        <div class="badge-live">✦ live</div>
+        <div class="swatch-big-wrap">
+          <div class="swatch-big" id="swatchPreview"></div>
+          <input type="color" id="baseColor" value="#f4bb4c" title="Pick exact color">
         </div>
-        <div class="field">
-          <div class="field-label">Scene</div>
-          <input type="text" id="scene" placeholder="sitting in a flower garden, flying over mountains..." />
+        <div class="swatch-meta">
+          <span class="eyebrow">Base color</span>
+          <span class="hexval" id="hexVal">#F4BB4C</span>
         </div>
       </div>
-    </div>
 
-    <!-- Style Parameters -->
-    <div class="panel">
-      <div class="panel-header" id="styleHeader">
-        <span class="panel-label">Style parameters</span>
-        <span class="panel-chevron open" id="styleChevron"><i class="ti ti-chevron-down"></i></span>
-      </div>
-      <div class="panel-body" id="styleBody">
-        <div class="two-col field field-first">
-          <div>
-            <div class="field-label">Age group</div>
-            <div class="chips" id="ageChips">
-              <span class="chip on" data-val="kids">Kids</span>
-              <span class="chip" data-val="adult">Adult</span>
-            </div>
-          </div>
-          <div>
-            <div class="field-label">Line color</div>
-            <div class="chips" id="lineColorChips">
-              <span class="chip on" data-val="black">Black</span>
-              <span class="chip" data-val="colored">Colored</span>
-            </div>
-          </div>
+      <div class="card">
+        <div class="field">
+          <div class="field-label">Hue <b id="hueVal">0°</b></div>
+          <input type="range" id="hueSlider" min="0" max="360" value="0">
         </div>
         <div class="field">
-          <div class="field-label">Style</div>
-          <div class="chips" id="styleChips">
-            <span class="chip on" data-val="cute, simple shapes, bold rounded outlines">Cute & simple</span>
-            <span class="chip" data-val="intricate mandala and zentangle style patterns">Mandala</span>
-            <span class="chip" data-val="whimsical storybook illustration with flowing lines">Storybook</span>
-            <span class="chip" data-val="botanical nature illustration, realistic line art">Botanical</span>
-            <span class="chip" data-val="modern geometric shapes and patterns, minimal">Geometric</span>
-            <span class="chip" data-val="fantasy art style with ornate decorative details">Fantasy</span>
-          </div>
+          <div class="field-label">Saturation <b id="satVal">0%</b></div>
+          <input type="range" id="satSlider" min="0" max="100" value="0">
         </div>
-        <div class="two-col field">
-          <div>
-            <div class="field-label">Complexity</div>
-            <div class="chips" id="complexChips">
-              <span class="chip on" data-val="very simple, large open areas to color, minimal small detail">Easy</span>
-              <span class="chip" data-val="moderate detail, balanced mix of large and small areas">Medium</span>
-              <span class="chip" data-val="highly detailed, intricate small sections throughout">Detailed</span>
-            </div>
-          </div>
-          <div>
-            <div class="field-label">Border</div>
-            <div class="chips" id="borderChips">
-              <span class="chip on" data-val="bordered">Bordered</span>
-              <span class="chip" data-val="borderless">Borderless</span>
-            </div>
-          </div>
+        <div class="field">
+          <div class="field-label">Value <b id="valVal">0%</b></div>
+          <input type="range" id="valSlider" min="0" max="100" value="0">
         </div>
       </div>
-    </div>
 
-    <!-- Format -->
-    <div class="panel">
-      <div class="panel-header" id="formatHeader">
-        <span class="panel-label">Format</span>
-        <span class="panel-chevron open" id="formatChevron"><i class="ti ti-chevron-down"></i></span>
-      </div>
-      <div class="panel-body" id="formatBody">
-        <div class="field field-first">
-          <div class="field-label">Orientation and resolution</div>
-          <div class="ratio-grid" id="ratioGrid">
-            <div class="ratio-card on" data-val="square" data-dims="2048 x 2048px">
-              <div class="ratio-shape" style="width:34px;height:34px;"></div>
-              <div class="ratio-name">Square</div>
-              <div class="ratio-dims">2048 × 2048</div>
-            </div>
-            <div class="ratio-card" data-val="portrait" data-dims="1536 x 2048px">
-              <div class="ratio-shape" style="width:26px;height:34px;"></div>
-              <div class="ratio-name">Portrait</div>
-              <div class="ratio-dims">1536 × 2048</div>
-            </div>
-            <div class="ratio-card" data-val="landscape" data-dims="2048 x 1536px">
-              <div class="ratio-shape" style="width:34px;height:26px;"></div>
-              <div class="ratio-name">Landscape</div>
-              <div class="ratio-dims">2048 × 1536</div>
-            </div>
-          </div>
-        </div>
+      <div class="card">
         <div class="field">
-          <div class="field-label">Line thickness — <span id="thickLabel">10px</span></div>
-          <div class="slider-row">
-            <input type="range" id="thickSlider" min="5" max="15" step="1" value="10" />
-            <span class="slider-num" id="thickVal">10px</span>
-          </div>
-          <div class="slider-ends"><span>Thinner</span><span>Bolder</span></div>
+          <div class="field-label">Harmony</div>
+          <select id="harmony">
+            <option value="complementary">Complementary</option>
+            <option value="analogous">Analogous</option>
+            <option value="triadic">Triadic</option>
+            <option value="split">Split Comp.</option>
+            <option value="tetradic">Tetradic</option>
+          </select>
         </div>
-        <div class="field">
-          <div class="field-label">Name on illustration</div>
-          <div class="toggle-row">
-            <button class="tog-btn" id="nameTog" aria-pressed="false"></button>
-            <span class="tog-text" id="togLabel">Off</span>
+        <div class="split-row" style="margin-top:10px">
+          <div class="field">
+            <div class="field-label">Cols</div>
+            <select id="cols">
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
           </div>
-          <div class="name-field" id="nameWrap" style="display:none;">
-            <input type="text" id="nameInput" placeholder="Name to add as outlined letters..." />
+          <div class="field">
+            <div class="field-label">Rows</div>
+            <select id="rows">
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Output -->
-    <div class="output-panel">
-      <div class="output-top">
-        <span class="output-label">Your prompt</span>
-        <button class="copy-btn" id="copyBtn"><i class="ti ti-copy"></i> Copy prompt</button>
+      <div class="card toggle-card">
+        <span>Auto gradient</span>
+        <label class="switch-label">
+          <input type="checkbox" id="gradToggle" checked>
+          <span class="switch"></span>
+        </label>
       </div>
-      <div id="promptBox" class="output-box"></div>
-    </div>
+
+      <button id="shuffleBtn" class="brut-btn amber">✦ Shuffle colors</button>
+      <button id="exportBtn" class="brut-btn coral">Export PNG ↗</button>
+
+      <div class="panel-footer">mix &amp; match, 2026</div>
+    </aside>
+
+    <main class="stage">
+      <div class="grid" id="grid"></div>
+    </main>
   </div>
 
-  <script>
-    function makeCollapsible(headerId, bodyId, chevronId) {
-      const header = document.getElementById(headerId);
-      const body = document.getElementById(bodyId);
-      const chevron = document.getElementById(chevronId);
-      let open = true;
-      header.addEventListener('click', () => {
-        open = !open;
-        body.classList.toggle('collapsed', !open);
-        chevron.classList.toggle('open', open);
-      });
-    }
-    makeCollapsible('styleHeader', 'styleBody', 'styleChevron');
-    makeCollapsible('formatHeader', 'formatBody', 'formatChevron');
+  <section class="reference-section">
+    <div class="ref-head">
+      <h2>Reference palettes</h2>
+      <span>tap to apply ✦</span>
+    </div>
+    <div class="ref-grid" id="refGrid"></div>
+    <button class="ref-more-btn" id="refMoreBtn">Show more ▾</button>
+  </section>
+</div>
+<canvas id="offscreen" style="display:none"></canvas>
 
-    function singleChipGroup(id) {
-      document.querySelectorAll('#' + id + ' .chip').forEach(c => {
-        c.addEventListener('click', () => {
-          document.querySelectorAll('#' + id + ' .chip').forEach(x => x.classList.remove('on'));
-          c.classList.add('on');
-          updatePrompt();
-        });
-      });
-    }
-    singleChipGroup('ageChips');
-    singleChipGroup('lineColorChips');
-    singleChipGroup('styleChips');
-    singleChipGroup('complexChips');
-    singleChipGroup('borderChips');
+<script>
+function hexToHsl(hex){
+  let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+  let max=Math.max(r,g,b),min=Math.min(r,g,b),l=(max+min)/2,s=0,h=0;
+  if(max!==min){let d=max-min;s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;}h/=6;}
+  return[Math.round(h*360),Math.round(s*100),Math.round(l*100)];
+}
+function hslToHex(h,s,l){
+  s/=100;l/=100;let a=s*Math.min(l,1-l),f=n=>{let k=(n+h/30)%12,c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,'0');};
+  return'#'+f(0)+f(8)+f(4);
+}
+function lighten(hex,amt){let[h,s,l]=hexToHsl(hex);return hslToHex(h,s,Math.min(90,l+amt));}
+function darken(hex,amt){let[h,s,l]=hexToHsl(hex);return hslToHex(h,s,Math.max(8,l-amt));}
+function getHarmonyHues(h,mode){
+  if(mode==='complementary')return[h,(h+180)%360];
+  if(mode==='analogous')return[h,(h+30)%360,(h-30+360)%360];
+  if(mode==='triadic')return[h,(h+120)%360,(h+240)%360];
+  if(mode==='split')return[h,(h+150)%360,(h+210)%360];
+  if(mode==='tetradic')return[h,(h+90)%360,(h+180)%360,(h+270)%360];
+  return[h];
+}
+function generateColors(baseHex,mode,total){
+  const[h,s,l]=hexToHsl(baseHex);
+  const hues=getHarmonyHues(h,mode);
+  const lSteps=[l,Math.min(l+22,88),Math.max(l-18,10),Math.min(l+38,92),Math.max(l-32,6),Math.min(l+10,80)];
+  const sSteps=[s,Math.min(s+12,100),Math.max(s-15,15),s,Math.min(s+20,100)];
+  const out=[];
+  for(let i=0;i<total*3;i++){
+    const hue=hues[i%hues.length];
+    const li=lSteps[Math.floor(i/hues.length)%lSteps.length];
+    const si=sSteps[Math.floor(i/hues.length)%sSteps.length];
+    out.push(hslToHex(hue,si,li));
+  }
+  return out.slice(0,total);
+}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
 
-    document.querySelectorAll('#ratioGrid .ratio-card').forEach(c => {
-      c.addEventListener('click', () => {
-        document.querySelectorAll('#ratioGrid .ratio-card').forEach(x => x.classList.remove('on'));
-        c.classList.add('on');
-        updatePrompt();
-      });
+// HSV <-> hex, for the sidebar sliders (independent of the HSL harmony math above)
+function hexToHsv(hex){
+  let r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+  let max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min,h=0;
+  if(d!==0){
+    if(max===r)h=((g-b)/d)%6;
+    else if(max===g)h=(b-r)/d+2;
+    else h=(r-g)/d+4;
+    h*=60;
+    if(h<0)h+=360;
+  }
+  const s=max===0?0:d/max,v=max;
+  return[Math.round(h),Math.round(s*100),Math.round(v*100)];
+}
+function hsvToHex(h,s,v){
+  s/=100;v/=100;
+  const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;
+  let r,g,b;
+  if(h<60){r=c;g=x;b=0;}else if(h<120){r=x;g=c;b=0;}else if(h<180){r=0;g=c;b=x;}
+  else if(h<240){r=0;g=x;b=c;}else if(h<300){r=x;g=0;b=c;}else{r=c;g=0;b=x;}
+  const R=Math.round((r+m)*255),G=Math.round((g+m)*255),B=Math.round((b+m)*255);
+  return'#'+[R,G,B].map(n=>n.toString(16).padStart(2,'0')).join('');
+}
+
+// Preset reference palettes shown at the bottom of the page
+const REFERENCE_PALETTES=[
+  {name:'Blush Fade',colors:['#fdecef','#fbd6dd','#f5c2cd','#d9c7ea']},
+  {name:'Ocean Deep',colors:['#27337c','#3f6fd8','#8fcbe8','#d8f0ee']},
+  {name:'Sage Mist',colors:['#5f9483','#8fcaa9','#bfe0c4','#e7f4e1']},
+  {name:'Golden Clay',colors:['#fbe7c6','#b0ab6e','#7a6338','#e2946a']},
+  {name:'Berry Punch',colors:['#5c1f4e','#b0134a','#e08a55','#fbe19a']},
+  {name:'Midnight Pop',colors:['#0d0d0d','#1c3a4a','#f6821f','#e9edf0']},
+  {name:'Sunny Sky',colors:['#f7e397','#bfe6f2','#a9cbe4','#7fa8cc']},
+  {name:'Studio Brand',colors:['#f4bb4c','#8fd0c4','#f2764a']},
+  {name:'Plum Wine',colors:['#4a1030','#900338','#e0895a','#f6debb']},
+  {name:'Coal Ember',colors:['#000000','#173040','#ff8c00','#e6e6e6']},
+  {name:'Lemon Pool',colors:['#f6e58a','#bfe6f0','#a8c8de','#7fa3c9']},
+  {name:'Peach Cream',colors:['#fbaa96','#fde6cb','#a3d6c1','#7cabc4']},
+  {name:'Marigold',colors:['#f8bd00','#fbf1a0','#365e28']},
+  {name:'Wine & Pine',colors:['#3d0f18','#123c2e','#5c8b6d','#e7e4c6']},
+  {name:'Bubblegum',colors:['#ff6fb0','#fbcaa8','#fde3b8','#fdfad3']},
+  {name:'Electric',colors:['#3a4bf0','#4d78f2','#6ea4f7','#e0c9f9']},
+  {name:'Fire Route',colors:['#c22112','#df3a1c','#f4d78a','#f8ecb6']},
+  {name:'Sandstone',colors:['#dcbf88','#f3edd0','#1ea7a0','#2c6a76']},
+  {name:'Clay Earth',colors:['#b04c46','#e7dcc9','#799e73']},
+  {name:'Tropic Pop',colors:['#1de2b1','#8c00a1','#f5127f','#ffd400']},
+  {name:'Citrus Mix',colors:['#f2edcf','#f8b830','#e4711f','#c1231a']},
+  {name:'Buttercream',colors:['#f8edd8','#f8dd8f','#a9c9e6','#fbe6df']},
+  {name:'Apricot Sky',colors:['#f6c091','#f5e2c1','#dcf3f9']},
+  {name:'Onyx Blush',colors:['#0a0a0a','#1e3d3a','#3c7a72','#c8caea']},
+  {name:'Violet Coral',colors:['#f6bc9d','#fb7c78','#d1147f','#7a12c6']},
+  {name:'Meadow',colors:['#2a0e42','#41647f','#59d4c6']},
+  {name:'Forest Line',colors:['#132a44','#154419','#dfa423','#eceae0']},
+  {name:'Lime Grove',colors:['#5c8f16','#b4d92e','#e5e6a3','#f2a03f']},
+  {name:'Midnight Navy',colors:['#0e1c3a','#1c5e2b','#e0a832','#e9e7e2']},
+  {name:'Cranberry',colors:['#9c123f','#e0217e','#f9a7cf','#fbe7a6']}
+];
+const REF_PAGE_SIZE=8;
+let refExpanded=false;
+
+// State: each cell stores {c1, c2, mode} where mode is 'gradient' or 'solid'
+let cells=[];
+
+function currentGlobalMode(){
+  return document.getElementById('gradToggle').checked?'gradient':'solid';
+}
+
+function buildCells(){
+  const cols=parseInt(document.getElementById('cols').value);
+  const rows=parseInt(document.getElementById('rows').value);
+  const total=cols*rows;
+  const base=document.getElementById('baseColor').value;
+  const mode=document.getElementById('harmony').value;
+  const colors=generateColors(base,mode,total);
+  const globalMode=currentGlobalMode();
+  cells=colors.map(c=>({c1:c,c2:lighten(c,22),mode:globalMode}));
+}
+
+function updateSliderTrackColors(h,s,v){
+  const satTrackColorLow=hsvToHex(h,0,v),satTrackColorHigh=hsvToHex(h,100,v);
+  document.getElementById('satSlider').style.background=`linear-gradient(to right,${satTrackColorLow},${satTrackColorHigh})`;
+  const valTrackColorLow=hsvToHex(h,s,0),valTrackColorHigh=hsvToHex(h,s,100);
+  document.getElementById('valSlider').style.background=`linear-gradient(to right,${valTrackColorLow},${valTrackColorHigh})`;
+}
+
+function updateHeadPreview(){
+  const base=document.getElementById('baseColor').value;
+  document.getElementById('swatchPreview').style.background=base;
+  document.getElementById('hexVal').textContent=base.toUpperCase();
+}
+
+function syncSlidersFromHex(){
+  const base=document.getElementById('baseColor').value;
+  const[h,s,v]=hexToHsv(base);
+  document.getElementById('hueSlider').value=h;
+  document.getElementById('satSlider').value=s;
+  document.getElementById('valSlider').value=v;
+  document.getElementById('hueVal').textContent=h+'°';
+  document.getElementById('satVal').textContent=s+'%';
+  document.getElementById('valVal').textContent=v+'%';
+  updateSliderTrackColors(h,s,v);
+}
+
+function syncHexFromSliders(){
+  const h=parseInt(document.getElementById('hueSlider').value);
+  const s=parseInt(document.getElementById('satSlider').value);
+  const v=parseInt(document.getElementById('valSlider').value);
+  document.getElementById('hueVal').textContent=h+'°';
+  document.getElementById('satVal').textContent=s+'%';
+  document.getElementById('valVal').textContent=v+'%';
+  document.getElementById('baseColor').value=hsvToHex(h,s,v);
+  updateSliderTrackColors(h,s,v);
+}
+
+function renderGrid(){
+  const cols=parseInt(document.getElementById('cols').value);
+  const grid=document.getElementById('grid');
+  grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
+  grid.innerHTML='';
+  cells.forEach((cell,i)=>{
+    const div=document.createElement('div');
+    div.className='cell';
+    div.style.background=cellBackground(cell);
+
+    // hex readout, bottom-left, always visible
+    const hexLabel=document.createElement('span');
+    hexLabel.className='hex-label';
+    hexLabel.textContent=cell.c1.toUpperCase();
+    div.appendChild(hexLabel);
+
+    // gradient/solid toggle, top-right, always visible
+    const modeBtn=document.createElement('button');
+    modeBtn.className='mode-badge';
+    modeBtn.title='Toggle gradient / solid';
+    modeBtn.textContent=cell.mode==='gradient'?'◐':'●';
+    modeBtn.addEventListener('click',e=>{
+      e.stopPropagation();
+      cells[i].mode=cells[i].mode==='gradient'?'solid':'gradient';
+      modeBtn.textContent=cells[i].mode==='gradient'?'◐':'●';
+      refreshCell(div,i);
     });
+    div.appendChild(modeBtn);
 
-    const slider = document.getElementById('thickSlider');
-    slider.addEventListener('input', () => {
-      document.getElementById('thickVal').textContent = slider.value + 'px';
-      document.getElementById('thickLabel').textContent = slider.value + 'px';
-      updatePrompt();
+    // hover controls: edit left/right colors, swap
+    const ctrl=document.createElement('div');
+    ctrl.className='cell-controls';
+
+    const p1=document.createElement('input');
+    p1.type='color';p1.value=cell.c1;p1.title='Left color';
+    p1.addEventListener('input',e=>{cells[i].c1=e.target.value;hexLabel.textContent=cells[i].c1.toUpperCase();refreshCell(div,i);});
+    p1.addEventListener('click',e=>e.stopPropagation());
+
+    const swapBtn=document.createElement('button');
+    swapBtn.className='swap-btn';swapBtn.textContent='⇄ swap';
+    swapBtn.addEventListener('click',e=>{e.stopPropagation();[cells[i].c1,cells[i].c2]=[cells[i].c2,cells[i].c1];p1.value=cells[i].c1;p2.value=cells[i].c2;hexLabel.textContent=cells[i].c1.toUpperCase();refreshCell(div,i);});
+
+    const p2=document.createElement('input');
+    p2.type='color';p2.value=cell.c2;p2.title='Right color';
+    p2.addEventListener('input',e=>{cells[i].c2=e.target.value;refreshCell(div,i);});
+    p2.addEventListener('click',e=>e.stopPropagation());
+
+    ctrl.appendChild(p1);ctrl.appendChild(swapBtn);ctrl.appendChild(p2);
+    div.appendChild(ctrl);
+
+    div.addEventListener('click',()=>navigator.clipboard?.writeText(cell.c1+' '+cell.c2));
+    grid.appendChild(div);
+  });
+}
+
+function cellBackground(cell){
+  return cell.mode==='gradient'
+    ?`linear-gradient(to right,${cell.c1},${cell.c2})`
+    :cell.c1;
+}
+
+function refreshCell(div,i){
+  div.style.background=cellBackground(cells[i]);
+}
+
+function fullRender(){updateHeadPreview();buildCells();renderGrid();}
+
+function renderReferenceGrid(){
+  const refGrid=document.getElementById('refGrid');
+  const moreBtn=document.getElementById('refMoreBtn');
+  refGrid.innerHTML='';
+  const visible=refExpanded?REFERENCE_PALETTES:REFERENCE_PALETTES.slice(0,REF_PAGE_SIZE);
+  visible.forEach(palette=>{
+    const wrap=document.createElement('div');
+    wrap.className='ref-chip-wrap';
+
+    const chip=document.createElement('button');
+    chip.className='ref-chip';
+    chip.title='Apply '+palette.name;
+    palette.colors.forEach(c=>{
+      const bar=document.createElement('div');
+      bar.className='ref-bar';
+      bar.style.background=c;
+      chip.appendChild(bar);
     });
+    chip.addEventListener('click',()=>applyReferencePalette(palette.colors));
 
-    let nameOn = false;
-    document.getElementById('nameTog').addEventListener('click', () => {
-      nameOn = !nameOn;
-      const btn = document.getElementById('nameTog');
-      btn.classList.toggle('on', nameOn);
-      btn.setAttribute('aria-pressed', nameOn);
-      document.getElementById('togLabel').textContent = nameOn ? 'On' : 'Off';
-      document.getElementById('nameWrap').style.display = nameOn ? 'block' : 'none';
-      updatePrompt();
-    });
+    const label=document.createElement('div');
+    label.className='ref-name';
+    label.textContent=palette.name;
 
-    document.getElementById('subject').addEventListener('input', updatePrompt);
-    document.getElementById('scene').addEventListener('input', updatePrompt);
-    document.getElementById('nameInput').addEventListener('input', updatePrompt);
+    wrap.appendChild(chip);
+    wrap.appendChild(label);
+    refGrid.appendChild(wrap);
+  });
+  if(REFERENCE_PALETTES.length>REF_PAGE_SIZE){
+    moreBtn.style.display='block';
+    moreBtn.textContent=refExpanded?'Show less ▴':`Show more (${REFERENCE_PALETTES.length-REF_PAGE_SIZE}) ▾`;
+  } else {
+    moreBtn.style.display='none';
+  }
+}
 
-    function buildPrompt(p) {
-      const ageDesc = p.age === 'kids'
-        ? 'designed for young children, with large simple rounded shapes, cute friendly proportions, and big open areas to color in'
-        : 'designed for adults, with intricate patterns, fine decorative detail, and a sophisticated layered composition';
+document.getElementById('refMoreBtn').addEventListener('click',()=>{
+  refExpanded=!refExpanded;
+  renderReferenceGrid();
+});
 
-      const colorDesc = p.lineColor === 'colored'
-        ? 'rendered with colorful outline strokes in varied hues for different sections, while all interior areas remain white and uncolored'
-        : 'rendered using clean pure black ink outlines only, with all interior areas left white';
+function applyReferencePalette(colors){
+  const total=cells.length||3;
+  const newCells=[];
+  for(let i=0;i<total;i++){
+    const c=colors[i%colors.length];
+    const prevMode=cells[i]?cells[i].mode:currentGlobalMode();
+    newCells.push({c1:c,c2:lighten(c,22),mode:prevMode});
+  }
+  cells=newCells;
+  document.getElementById('baseColor').value=colors[0];
+  syncSlidersFromHex();
+  updateHeadPreview();
+  renderGrid();
+}
 
-      const borderDesc = p.border === 'bordered'
-        ? ' Frame the entire illustration with a clean decorative border around the edge of the page.'
-        : ' No border or frame around the illustration, the design extends naturally to the edge of the page.';
-
-      const nameDesc = p.nameVal
-        ? ` Include the name "${p.nameVal}" rendered as large decorative outlined bubble letters at the bottom of the composition, matching the same line style.`
-        : '';
-
-      const orientDesc = p.orientation === 'square'
-        ? 'square format'
-        : p.orientation === 'portrait'
-          ? 'portrait orientation, taller than wide'
-          : 'landscape orientation, wider than tall';
-
-      return `A coloring book page illustration of ${p.subject}${p.scene ? ', ' + p.scene : ''}. Style: ${p.style}. Complexity: ${p.complexity}. ${ageDesc}. ${colorDesc}, with consistent line weight of approximately ${p.thickness}px for main outlines.${borderDesc}${nameDesc} ${orientDesc}, resolution ${p.dims}. Clean vector-style line art, no shading, no gradients, no interior fill colors, white background, coloring book page, high contrast, crisp outlines, centered composition, full page illustration.`;
+document.getElementById('baseColor').addEventListener('input',()=>{syncSlidersFromHex();fullRender();});
+document.getElementById('hueSlider').addEventListener('input',()=>{syncHexFromSliders();fullRender();});
+document.getElementById('satSlider').addEventListener('input',()=>{syncHexFromSliders();fullRender();});
+document.getElementById('valSlider').addEventListener('input',()=>{syncHexFromSliders();fullRender();});
+document.getElementById('harmony').addEventListener('change',fullRender);
+document.getElementById('cols').addEventListener('change',fullRender);
+document.getElementById('rows').addEventListener('change',fullRender);
+document.getElementById('gradToggle').addEventListener('change',()=>{
+  const mode=currentGlobalMode();
+  cells.forEach(c=>c.mode=mode);
+  renderGrid();
+});
+document.getElementById('shuffleBtn').addEventListener('click',()=>{shuffle(cells);renderGrid();});
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const cols=parseInt(document.getElementById('cols').value);
+  const rows=Math.ceil(cells.length/cols);
+  const W=cols*300,H=rows*200;
+  const cv=document.getElementById('offscreen');
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');
+  cells.forEach((cell,i)=>{
+    const x=(i%cols)*300,y=Math.floor(i/cols)*200;
+    if(cell.mode==='gradient'){
+      const g=ctx.createLinearGradient(x,0,x+300,0);
+      g.addColorStop(0,cell.c1);g.addColorStop(1,cell.c2);
+      ctx.fillStyle=g;
+    } else {
+      ctx.fillStyle=cell.c1;
     }
+    ctx.fillRect(x,y,300,200);
+  });
+  const a=document.createElement('a');
+  a.download='texture_palette.png';
+  a.href=cv.toDataURL('image/png');
+  a.click();
+});
 
-    function updatePrompt() {
-      const subject = document.getElementById('subject').value.trim() || 'a friendly cat';
-      const scene = document.getElementById('scene').value.trim();
-      const age = document.querySelector('#ageChips .chip.on')?.dataset.val || 'kids';
-      const lineColor = document.querySelector('#lineColorChips .chip.on')?.dataset.val || 'black';
-      const style = document.querySelector('#styleChips .chip.on')?.dataset.val || 'cute, simple shapes, bold rounded outlines';
-      const complexity = document.querySelector('#complexChips .chip.on')?.dataset.val || 'very simple, large open areas to color, minimal small detail';
-      const border = document.querySelector('#borderChips .chip.on')?.dataset.val || 'bordered';
-      const ratioCard = document.querySelector('#ratioGrid .ratio-card.on');
-      const orientation = ratioCard?.dataset.val || 'square';
-      const dims = ratioCard?.dataset.dims || '2048 x 2048px';
-      const thickness = slider.value;
-      const nameVal = nameOn ? document.getElementById('nameInput').value.trim() : '';
-      document.getElementById('promptBox').textContent = buildPrompt({ subject, scene, age, lineColor, style, complexity, border, orientation, dims, thickness, nameVal });
-    }
-
-    document.getElementById('copyBtn').addEventListener('click', () => {
-      const text = document.getElementById('promptBox').textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copyBtn');
-        btn.classList.add('copied');
-        btn.innerHTML = '<i class="ti ti-check"></i> Copied!';
-        setTimeout(() => {
-          btn.classList.remove('copied');
-          btn.innerHTML = '<i class="ti ti-copy"></i> Copy prompt';
-        }, 2000);
-      });
-    });
-
-    updatePrompt();
-  </script>
-</body>
-</html>
+// First-load state: match the brand bars (amber / mint / coral) instead of the
+// algorithmically generated harmony, so the very first thing you see matches
+// the reference. Any control change after this regenerates normally.
+function initialLoad(){
+  syncSlidersFromHex();
+  updateHeadPreview();
+  cells=[
+    {c1:'#f4bb4c',c2:lighten('#f4bb4c',22),mode:'gradient'},
+    {c1:'#8fd0c4',c2:lighten('#8fd0c4',22),mode:'gradient'},
+    {c1:'#f2764a',c2:lighten('#f2764a',22),mode:'gradient'}
+  ];
+  renderGrid();
+  renderReferenceGrid();
+}
+initialLoad();
+</script>
